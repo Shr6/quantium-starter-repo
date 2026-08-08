@@ -1,0 +1,332 @@
+# Task: Create a Dash App to Visualise Pink Morsel Sales
+
+**Step-by-Step Notes (with commented code)**
+
+---
+
+# Step 1: Import the required libraries
+
+We first import the libraries needed for the project.
+
+```python
+import pandas as pd          # Used to read and manipulate CSV data
+import plotly.express as px  # Used to create charts
+from dash import Dash, html, dcc   # Used to build the Dash web application
+```
+
+### What happened?
+
+* `pandas` reads and processes the CSV file.
+* `plotly.express` creates the line chart.
+* `Dash` creates the interactive web application.
+
+---
+
+# Step 2: Read the CSV file
+
+Our processed sales data is stored inside the **data** folder.
+
+```python
+# Read the processed sales data
+df = pd.read_csv("data/formatted_sales_data.csv")
+```
+
+### What happened?
+
+* `pd.read_csv()` loads the CSV into a DataFrame.
+* A DataFrame is like an Excel spreadsheet inside Python.
+
+---
+
+# Step 3: Rename the columns
+
+The CSV contains:
+
+```text
+Sales
+Date
+Region
+```
+
+We rename them to make them easier to work with.
+
+```python
+# Rename the columns
+df = df.rename(columns={
+    "Sales": "sales",
+    "Date": "date",
+    "Region": "region"
+})
+```
+
+### What happened?
+
+Instead of writing:
+
+```python
+df["Sales"]
+```
+
+we can simply write
+
+```python
+df["sales"]
+```
+
+---
+
+# Step 4: Convert data types
+
+The date and sales columns need the correct data types.
+
+```python
+# Convert Sales column into numbers
+df["sales"] = pd.to_numeric(df["sales"])
+
+# Convert Date column into datetime format
+df["date"] = pd.to_datetime(df["date"])
+```
+
+### What happened?
+
+* Sales becomes a numeric value.
+* Date becomes a proper date so Python can sort it correctly.
+
+---
+
+# Step 5: Calculate total daily sales
+
+The dataset contains four regions.
+
+We need **total sales per day**.
+
+```python
+# Group by date and calculate total sales
+daily_sales = (
+    df.groupby("date", as_index=False)["sales"]
+      .sum()
+      .sort_values("date")
+)
+```
+
+### What happened?
+
+Example:
+
+Before grouping:
+
+| Date       | Region | Sales |
+| ---------- | ------ | ----: |
+| 2018-02-06 | North  |  1638 |
+| 2018-02-06 | South  |  1647 |
+| 2018-02-06 | East   |  1731 |
+| 2018-02-06 | West   |  1557 |
+
+After grouping:
+
+| Date       | Total Sales |
+| ---------- | ----------: |
+| 2018-02-06 |        6573 |
+
+This creates one row per day.
+
+---
+
+# Step 6: Create the line chart
+
+```python
+# Create the line chart
+fig = px.line(
+    daily_sales,
+    x="date",
+    y="sales",
+    title="Pink Morsel Sales Over Time",
+    render_mode="svg"
+)
+```
+
+### What happened?
+
+* X-axis = Date
+* Y-axis = Sales
+* A line chart is generated.
+* `render_mode="svg"` avoids WebGL issues.
+
+---
+
+# Step 7: Improve the chart
+
+```python
+# Add axis labels and style
+fig.update_layout(
+    xaxis_title="Date",
+    yaxis_title="Sales ($)",
+    template="plotly_white"
+)
+```
+
+### What happened?
+
+This makes the chart more professional by:
+
+* labeling the X-axis
+* labeling the Y-axis
+* using a clean white theme
+
+---
+
+# Step 8: Create the Dash application
+
+```python
+# Create the Dash app
+app = Dash(__name__)
+```
+
+### What happened?
+
+This creates the web application.
+
+---
+
+# Step 9: Design the webpage
+
+```python
+app.layout = html.Div([
+
+    # Page title
+    html.H1(
+        "Soul Foods Sales Visualiser",
+        style={"textAlign": "center"}
+    ),
+
+    # Display the chart
+    dcc.Graph(
+        figure=fig,
+        config={"displayModeBar": False}
+    )
+
+])
+```
+
+### What happened?
+
+The webpage contains:
+
+* A heading.
+* The line chart.
+
+---
+
+# Step 10: Run the application
+
+```python
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+### What happened?
+
+Running
+
+```bash
+python app.py
+```
+
+starts a local web server.
+
+You then open:
+
+```text
+http://127.0.0.1:8050/
+```
+
+to view the dashboard.
+
+---
+
+# Complete Code (with comments)
+
+```python
+import pandas as pd
+import plotly.express as px
+from dash import Dash, html, dcc
+
+# Read the processed CSV file
+df = pd.read_csv("data/formatted_sales_data.csv")
+
+# Rename columns
+df = df.rename(columns={
+    "Sales": "sales",
+    "Date": "date",
+    "Region": "region"
+})
+
+# Convert data types
+df["sales"] = pd.to_numeric(df["sales"])
+df["date"] = pd.to_datetime(df["date"])
+
+# Group data by date and calculate total sales
+daily_sales = (
+    df.groupby("date", as_index=False)["sales"]
+      .sum()
+      .sort_values("date")
+)
+
+# Create line chart
+fig = px.line(
+    daily_sales,
+    x="date",
+    y="sales",
+    title="Pink Morsel Sales Over Time",
+    render_mode="svg"
+)
+
+# Add labels and styling
+fig.update_layout(
+    xaxis_title="Date",
+    yaxis_title="Sales ($)",
+    template="plotly_white"
+)
+
+# Create Dash app
+app = Dash(__name__)
+
+# Design the webpage
+app.layout = html.Div([
+
+    # Dashboard heading
+    html.H1(
+        "Soul Foods Sales Visualiser",
+        style={"textAlign": "center"}
+    ),
+
+    # Display graph
+    dcc.Graph(
+        figure=fig,
+        config={"displayModeBar": False}
+    )
+
+])
+
+# Run the application
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+---
+
+# Assignment Requirements Checklist
+
+| Requirement              | Status      |
+| ------------------------ | ----------- |
+| Appropriate header       | ✅           |
+| Line chart               | ✅           |
+| Sales data visualised    | ✅           |
+| Sorted by date           | ✅           |
+| X-axis labeled           | ✅ Date      |
+| Y-axis labeled           | ✅ Sales ($) |
+| Dash application         | ✅           |
+| Runs locally             | ✅           |
+| Ready to commit and push | ✅           |
+
+These notes are suitable for explaining your work in a report or during a demonstration.
